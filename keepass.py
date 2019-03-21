@@ -10,6 +10,8 @@ except ImportError:
     display = Display()
 
 import os
+import json
+import socket
 from pykeepass import PyKeePass
 from construct.core import ChecksumError
 from ansible.errors import AnsibleError
@@ -19,14 +21,11 @@ from ansible.plugins.lookup import LookupBase
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <victor.zemtsov@gmail.com>
-    version_added: '0.1'
+    version_added: '0.2'
     short_description: fetch data from KeePass file
     description:
-        - This lookup returns a value of a property of a KeePass entry which fetched by given path.
-        - Required variables are
-        - keepass_dbx - path to database file and 
-        - keepass_psw - password. 
-        - Optional variable is keepass_key - path to key file
+        - This lookup returns a value of a property of a KeePass entry 
+        - which fetched by given path
     options:
       _terms:
         description: 
@@ -49,25 +48,52 @@ class LookupModule(LookupBase):
         entry_path = terms[0].strip('/')
         entry_attr = terms[1]
 
-        keepass_psw = variables.get('keepass_psw', '')
-        keepass_dbx = variables.get('keepass_dbx', '')
-        keepass_dbx = os.path.realpath(os.path.expanduser(keepass_dbx))
-        if os.path.isfile(keepass_dbx):
-            display.v(u"Found Keepass database file: %s" % keepass_dbx)
+        kp_dbx = variables.get('keepass_dbx', '')
+        kp_dbx = os.path.realpath(os.path.expanduser(kp_dbx))
+        if os.path.isfile(kp_dbx):
+            display.v(u"Keepass: database file %s" % kp_dbx)
+        kp_soc = "%s.sock" % kp_dbx
+        if os.path.exists(kp_soc):
+            return self._fetch_socket(kp_soc, entry_path, entry_attr)
+        kp_psw = variables.get('keepass_psw', '')
+        kp_key = variables.get('keepass_key')
+        return self._fetch_file(
+                kp_dbx, str(kp_psw), kp_key, entry_path, entry_attr)
 
-        keepass_key = variables.get('keepass_key')
-        if keepass_key:
-            keepass_key = os.path.realpath(os.path.expanduser(keepass_key))
-            if os.path.isfile(keepass_key):
-                display.v(u"Found Keepass database keyfile: %s" % keepass_dbx)
+    def _fetch_file(self, kp_dbx, kp_psw, kp_key, entry_path, entry_attr):
+        if kp_key:
+            kp_key = os.path.realpath(os.path.expanduser(kp_key))
+            if os.path.isfile(kp_key):
+                display.vvv(u"Keepass: database keyfile: %s" % kp_key)
 
         try:
-            with PyKeePass(keepass_dbx, keepass_psw, keepass_key) as kp:
+            with PyKeePass(kp_dbx, kp_psw, kp_key) as kp:
                 entry = kp.find_entries_by_path(entry_path, first=True)
                 if entry is None:
                     raise AnsibleError(u"Entry '%s' is not found" % entry_path)
+                display.vv(
+                    u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
                 return [getattr(entry, entry_attr)]
         except ChecksumError:
-            raise AnsibleError("Wrong password/keyfile {}".format(keepass_dbx))
+            raise AnsibleError("Wrong password/keyfile {}".format(kp_dbx))
         except (AttributeError, FileNotFoundError) as e:
             raise AnsibleError(e)
+
+    def _fetch_socket(self, kp_soc, entry_path, entry_attr):
+        display.vvvv(u"KeePass: try to socket connect")
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(kp_soc)
+        display.vvvv(u"KeePass: connected")
+        sock.send(json.dumps({'attr': entry_attr, 'path': entry_path}).encode())
+        display.vv(u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
+        try:
+            msg = json.loads(sock.recv(1024).decode())
+        except json.JSONDecodeError as e:
+            raise AnsibleError(str(e))
+        finally:
+            sock.close()
+            display.vvvv(u"KeePass: disconnected")
+
+        if msg['status'] == 'error':
+            raise AnsibleError(msg['text'])
+        return [msg['text']]
