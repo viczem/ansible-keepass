@@ -41,6 +41,7 @@ DOCUMENTATION = """
 
 
 class LookupModule(LookupBase):
+    keepass = None
 
     def run(self, terms, variables=None, **kwargs):
         if not terms or len(terms) != 2:
@@ -52,9 +53,11 @@ class LookupModule(LookupBase):
         kp_dbx = os.path.realpath(os.path.expanduser(kp_dbx))
         if os.path.isfile(kp_dbx):
             display.v(u"Keepass: database file %s" % kp_dbx)
+
         kp_soc = "%s.sock" % kp_dbx
         if os.path.exists(kp_soc):
             return self._fetch_socket(kp_soc, entry_path, entry_attr)
+
         kp_psw = variables.get('keepass_psw', '')
         kp_key = variables.get('keepass_key')
         return self._fetch_file(
@@ -67,13 +70,15 @@ class LookupModule(LookupBase):
                 display.vvv(u"Keepass: database keyfile: %s" % kp_key)
 
         try:
-            with PyKeePass(kp_dbx, kp_psw, kp_key) as kp:
-                entry = kp.find_entries_by_path(entry_path, first=True)
-                if entry is None:
-                    raise AnsibleError(u"Entry '%s' is not found" % entry_path)
-                display.vv(
-                    u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
-                return [getattr(entry, entry_attr)]
+            if not LookupModule.keepass:
+                LookupModule.keepass = PyKeePass(kp_dbx, kp_psw, kp_key)
+            entry = LookupModule.keepass.\
+                find_entries_by_path(entry_path, first=True)
+            if entry is None:
+                raise AnsibleError(u"Entry '%s' is not found" % entry_path)
+            display.vv(
+                u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
+            return [getattr(entry, entry_attr)]
         except ChecksumError:
             raise AnsibleError("Wrong password/keyfile {}".format(kp_dbx))
         except (AttributeError, FileNotFoundError) as e:
