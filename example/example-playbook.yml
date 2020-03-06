@@ -1,0 +1,16 @@
+---
+- name: Example
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    spam_login: "{{ lookup('keepass', 'spam', 'username')}}"
+    spam_password: "{{ lookup('keepass', 'spam', 'password')}}"
+    ham_login: "{{ lookup('keepass', 'example/ham', 'username')}}"
+    ham_password: "{{ lookup('keepass', 'example/ham', 'password')}}"
+
+  tasks:
+    - debug:
+        msg: "fetch group: /    username: {{ spam_login }}    password: {{ spam_password }}"
+
+    - debug:
+        msg: "fetch group: /example/ham     username: {{ ham_login }}   password: {{ ham_password }}"

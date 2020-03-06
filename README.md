@@ -7,6 +7,8 @@ instead of duplicating to `ansible-vault`.
 
 ## Installation
 
+Dependency: `pykeepass`
+
     pip install pykeepass --user
     mkdir -p ~/.ansible/plugins/lookup && cd "$_"
     curl https://raw.githubusercontent.com/viczem/ansible-keepass/master/keepass.py -o ./keepass.py
@@ -53,11 +55,14 @@ Run socket by the command and after that enter a password to make to open KeePas
     python kpsock.py ~/.keepass/database.kdbx
 
 
-The command will creates UNIX socket in the same directory as KeePass file. 
+The command will creates UNIX socket in a system temp directory. Only one socket 
 > **WARNING**: The KeePass file and password are stay decrypted in memory while the socket is open.
 
 The socket timeout is 1 minute since past access (will be closed automatically when not used).
-To change timeout use `--ttl` argument (see help `python kpsock.py -h`)
+To change timeout use `--ttl` argument. 
+For logging requests in a file use `--log` (default `--log-level` is `INFO`).
+
+For help `python kpsock.py --help`
 
 To send the running command in background press <kbd>CTRL</kbd>+<kbd>Z</kbd> and execute `bg` 
 (`fg` to get the job into the foreground again).
