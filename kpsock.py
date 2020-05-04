@@ -14,6 +14,12 @@ from pykeepass import PyKeePass
 from pykeepass.exceptions import CredentialsIntegrityError
 
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+
 def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
     log = logging.getLogger('ansible_keepass')
 
@@ -81,7 +87,8 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
         pass
     finally:
         log.info("Close ansible-keepass socket")
-        os.remove(sock_fpath)
+        if os.path.isfile(sock_fpath):
+            os.remove(sock_fpath)
 
 
 def _msg(status, text):
@@ -142,7 +149,12 @@ if __name__ == "__main__":
     # - predictable socket path for use in ansible plugin
     # - tempdir for prevent error AF_UNIX path too long
     # - only one socket can be opened
-    sock_file_path = "%s/ansible-keepass.sock" % tempfile.gettempdir()
+    tempdir = tempfile.gettempdir()
+    if not os.access(tempdir, os.W_OK):
+        sys.stderr.write("You have no write permissions to %s" % tempdir)
+        sys.exit(1)
+
+    sock_file_path = "%s/ansible-keepass.sock" % tempdir
     if os.path.exists(sock_file_path):
         sys.stderr.write("kpsock is already opened. If you sure that kpsock "
                          "closed, run: rm %s" % sock_file_path)
