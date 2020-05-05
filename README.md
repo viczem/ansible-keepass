@@ -52,7 +52,9 @@ because of KeePass file stay decrypted and not need to reopen after done each pl
 In this case, there is no need to enter a password for KeePass each time Ansible is called.
 Run socket by the command and after that enter a password to make to open KeePass file.
 
-    python kpsock.py ~/.keepass/database.kdbx
+**Supported only Python 3**
+
+    python3 kpsock.py ~/.keepass/database.kdbx
 
 
 The command will creates UNIX socket in a system temp directory. Only one socket 
