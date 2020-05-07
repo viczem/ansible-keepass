@@ -87,7 +87,7 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
         pass
     finally:
         log.info("Close ansible-keepass socket")
-        if os.path.isfile(sock_fpath):
+        if os.path.exists(sock_fpath):
             os.remove(sock_fpath)
 
 
