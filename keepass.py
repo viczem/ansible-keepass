@@ -45,11 +45,15 @@ class LookupModule(LookupBase):
     keepass = None
 
     def run(self, terms, variables=None, **kwargs):
-        if not terms or len(terms) != 2:
+        if not terms or len(terms) < 2 or len(terms) > 3:
             raise AnsibleError('Wrong request format')
         entry_path = terms[0].strip('/')
         entry_attr = terms[1]
-
+        enable_custom_attr = False
+        
+        if len(terms) == 3:
+            enable_custom_attr = terms[2]
+        
         kp_dbx = variables.get('keepass_dbx', '')
         kp_dbx = os.path.realpath(os.path.expanduser(kp_dbx))
         if os.path.isfile(kp_dbx):
@@ -64,9 +68,9 @@ class LookupModule(LookupBase):
         kp_key = variables.get('keepass_key')
         display.v(u"Keepass: fetch from kdbx file")
         return self._fetch_file(
-                kp_dbx, str(kp_psw), kp_key, entry_path, entry_attr)
+            kp_dbx, str(kp_psw), kp_key, entry_path, entry_attr, enable_custom_attr)
 
-    def _fetch_file(self, kp_dbx, kp_psw, kp_key, entry_path, entry_attr):
+    def _fetch_file(self, kp_dbx, kp_psw, kp_key, entry_path, entry_attr, enable_custom_attr):
         if kp_key:
             kp_key = os.path.realpath(os.path.expanduser(kp_key))
             if os.path.isfile(kp_key):
@@ -81,7 +85,15 @@ class LookupModule(LookupBase):
                 raise AnsibleError(u"Entry '%s' is not found" % entry_path)
             display.vv(
                 u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
-            return [getattr(entry, entry_attr)]
+            entry_val = None
+            if enable_custom_attr:
+                entry_val = entry.get_custom_property(entry_attr)
+                if entry_val is not None:
+                    return [entry_val]
+                else:
+                    raise AnsibleError(AttributeError(u"'No custom field property '%s'" % (entry_attr)))
+            else:
+                return [getattr(entry, entry_attr)]
         except ChecksumError:
             raise AnsibleError("Wrong password/keyfile {}".format(kp_dbx))
         except (AttributeError, FileNotFoundError) as e:
