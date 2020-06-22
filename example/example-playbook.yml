@@ -7,7 +7,7 @@
     spam_password: "{{ lookup('keepass', 'spam', 'password')}}"
     ham_login: "{{ lookup('keepass', 'example/ham', 'username')}}"
     ham_password: "{{ lookup('keepass', 'example/ham', 'password')}}"
-    pork_custom_property: "{{ lookup('keepass', 'example/pork', 'pork_custom_propertys', true)}}"
+    pork_custom_property: "{{ lookup('keepass', 'example/pork', 'pork_custom_property', true)}}"
 
   tasks:
     - debug:
