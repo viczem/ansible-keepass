@@ -84,5 +84,14 @@ You can get another [properties of an KeePass entry](https://github.com/pschmitt
 (not only `username` or `password`)
 
 Specify a boolean value of true to use custom field properties
+
+If the second parameter is `*` then the whole subtree under the first parameter
+is returned with the leaf entries containing `{ username: password }`.
+_Currently this works only for `_fetch_file`!_
+Given the KeePass DB has the host names in the first group level you could write
+this in `group_vars/all.yml` and get a host-specific dict with user names and 
+passwords:
+
+    dbpasswords: "{{ lookup('keepass', inventory_hostname, '*') }}"
  
 `ansible-doc -t lookup keepass` - to get description of the plugin
