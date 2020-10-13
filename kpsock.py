@@ -52,6 +52,7 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
 
                             path = msg['path'].strip('/')
                             attr = msg['attr']
+                            enable_custom_attr = msg.get('enable_custom_attr', False)
                             log.debug("attr: %s in path: %s" % (attr, path))
                             entr = kp.find_entries_by_path(path, first=True)
 
@@ -60,6 +61,18 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
                                         _msg('error',
                                              'path %s is not found' % path))
                                 log.error('path %s is not found' % path)
+                                continue
+
+                            if enable_custom_attr:
+                                if not attr in entr.custom_properties:
+                                    conn.send(
+                                            _msg('error',
+                                                 'custom field property %s is not found' % attr))
+                                    log.error('custom field property %s is not found' % attr)
+                                    continue
+                                val = entr.get_custom_property(attr)
+                                conn.send(_msg('ok', val))
+                                log.info('Fetch %s: %s (custom field)', path, attr)
                                 continue
 
                             if not hasattr(entr, attr):

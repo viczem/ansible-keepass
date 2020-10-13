@@ -62,7 +62,7 @@ class LookupModule(LookupBase):
         kp_soc = "%s/ansible-keepass.sock" % tempfile.gettempdir()
         if os.path.exists(kp_soc):
             display.v(u"Keepass: fetch from socket")
-            return self._fetch_socket(kp_soc, entry_path, entry_attr)
+            return self._fetch_socket(kp_soc, entry_path, entry_attr, enable_custom_attr)
 
         kp_psw = variables.get('keepass_psw', '')
         kp_key = variables.get('keepass_key')
@@ -99,12 +99,15 @@ class LookupModule(LookupBase):
         except (AttributeError, FileNotFoundError) as e:
             raise AnsibleError(e)
 
-    def _fetch_socket(self, kp_soc, entry_path, entry_attr):
+    def _fetch_socket(self, kp_soc, entry_path, entry_attr, enable_custom_attr):
         display.vvvv(u"KeePass: try to socket connect")
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(kp_soc)
         display.vvvv(u"KeePass: connected")
-        sock.send(json.dumps({'attr': entry_attr, 'path': entry_path}).encode())
+        data = {'attr': entry_attr, 'path': entry_path}
+        if enable_custom_attr:
+          data['enable_custom_attr'] = True
+        sock.send(json.dumps(data).encode())
         display.vv(u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
         try:
             msg = json.loads(sock.recv(1024).decode())
