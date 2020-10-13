@@ -64,6 +64,10 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
                                 continue
 
                             if enable_custom_attr:
+                                if attr == '*':
+                                    conn.send(_msg('ok', {i[0]:i[1] for i in entr.custom_properties.items()}))
+                                    log.info('Fetch %s: %s (custom field)', path, attr)
+                                    continue
                                 if not attr in entr.custom_properties:
                                     conn.send(
                                             _msg('error',
