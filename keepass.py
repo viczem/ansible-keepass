@@ -32,6 +32,7 @@ DOCUMENTATION = """
         description: 
           - first is a path to KeePass entry
           - second is a property name of the entry, e.g. username or password
+          - third (optional property) if true custem_field_property is return
         required: True
     notes:
       - https://github.com/viczem/ansible-keepass
