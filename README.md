@@ -21,7 +21,7 @@ Dependency: `pykeepass`
 - `keepass` - definition of keepass databases in the structure shown below
 
   keepass:
-  - name: primary
+    - name: primary
       location: ~/keepass.kdbx
       password: !vault ...
       keyfile: !vault ...
@@ -50,7 +50,7 @@ To decrypt the passwod use `--ask-vault-pass`
 Define variables you need e.g. in any file in group_vars
 
     keepass:
-    - name: primary
+      - name: primary
         location: ~/keepass.kdbx
         password: !vault ...
         keyfile: !vault ...
