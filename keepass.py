@@ -10,6 +10,7 @@ except ImportError:
     display = Display()
 
 import os
+import base64
 import json
 import socket
 import tempfile
@@ -30,90 +31,77 @@ DOCUMENTATION = """
     options:
       _terms:
         description: 
-          - first is a path to KeePass entry
-          - second is a property name of the entry, e.g. username or password
+          - name of the database from the list
+          - second is a path to KeePass entry
+          - third is a property name of the entry, e.g. property/custom property/attachment
         required: True
     notes:
       - https://github.com/viczem/ansible-keepass
     
-    example:
-      - "{{ lookup('keepass', 'path/to/entry', 'password') }}"
+    sample definition:
+      keepass:
+        - name: primary
+          location: ~/keepass.kdbx
+          password: !vault ...
+          keyfile: !vault ...
+
+    sample lookup:
+      - "{{ lookup('keepass', 'primary', 'path/to/entry', 'property') }}"
 """
 
 
 class LookupModule(LookupBase):
-    keepass = None
+    keepass = {}
 
     def run(self, terms, variables=None, **kwargs):
-        if not terms or len(terms) < 2 or len(terms) > 3:
+        if not terms or len(terms) != 3:
             raise AnsibleError('Wrong request format')
-        entry_path = terms[0].strip('/')
-        entry_attr = terms[1]
-        enable_custom_attr = False
-        
-        if len(terms) == 3:
-            enable_custom_attr = terms[2]
-        
-        kp_dbx = variables.get('keepass_dbx', '')
-        kp_dbx = os.path.realpath(os.path.expanduser(kp_dbx))
-        if os.path.isfile(kp_dbx):
-            display.v(u"Keepass: database file %s" % kp_dbx)
+        database_name = terms[0]
+        entry_path = terms[1].strip('/')
+        entry_attribute = terms[2]
+        database_list = variables.get('keepass', '')
 
-        kp_soc = "%s/ansible-keepass.sock" % tempfile.gettempdir()
-        if os.path.exists(kp_soc):
-            display.v(u"Keepass: fetch from socket")
-            return self._fetch_socket(kp_soc, entry_path, entry_attr)
+        # find database in list
+        database_details = [db for db in database_list if db["name"] == database_name][0]
+        if database_details is None:
+            raise AnsibleError(u"Database definition for '%s' not found" % database_name)
 
-        kp_psw = variables.get('keepass_psw', '')
-        kp_key = variables.get('keepass_key')
-        display.v(u"Keepass: fetch from kdbx file")
-        return self._fetch_file(
-            kp_dbx, str(kp_psw), kp_key, entry_path, entry_attr, enable_custom_attr)
+        # get database location
+        database_location = os.path.realpath(os.path.expanduser(database_details.get("location")))
+        if os.path.isfile(database_location):
+            display.v(u"Keepass: database file %s" % database_location)
 
-    def _fetch_file(self, kp_dbx, kp_psw, kp_key, entry_path, entry_attr, enable_custom_attr):
-        if kp_key:
-            kp_key = os.path.realpath(os.path.expanduser(kp_key))
-            if os.path.isfile(kp_key):
-                display.vvv(u"Keepass: database keyfile: %s" % kp_key)
+        # get database password
+        database_password = database_details.get("password", '')
+
+        # get database keyfile
+        database_keyfile = database_details.get("keyfile", None)
+        if database_keyfile:
+            database_keyfile = os.path.realpath(os.path.expanduser(database_keyfile))
+            if os.path.isfile(database_keyfile):
+                display.vvv(u"Keepass: database keyfile: %s" % database_keyfile)
 
         try:
-            if not LookupModule.keepass:
-                LookupModule.keepass = PyKeePass(kp_dbx, kp_psw, kp_key)
-            entry = LookupModule.keepass.\
-                find_entries_by_path(entry_path, first=True)
+            # open database
+            if LookupModule.keepass.get(database_name, None) is None:
+                LookupModule.keepass[database_name] = PyKeePass(database_location, database_password, database_keyfile)
+
+            # find entry
+            entry = LookupModule.keepass[database_name].find_entries_by_path(entry_path, first=True)
             if entry is None:
                 raise AnsibleError(u"Entry '%s' is not found" % entry_path)
-            display.vv(
-                u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
-            entry_val = None
-            if enable_custom_attr:
-                entry_val = entry.get_custom_property(entry_attr)
-                if entry_val is not None:
-                    return [entry_val]
-                else:
-                    raise AnsibleError(AttributeError(u"'No custom field property '%s'" % (entry_attr)))
-            else:
-                return [getattr(entry, entry_attr)]
+            display.vv(u"KeePass: attr: %s in path: %s" % (entry_attribute, entry_path))
+
+            # get entry value
+            entry_val = getattr(entry, entry_attribute, None) or \
+                        entry.custom_properties.get(entry_attribute, None) or \
+                        base64.b64encode([attachment for index, attachment in enumerate(entry.attachments) if attachment.filename == entry_attribute][0].binary)
+
+            return [entry_val]
+
+        except IndexError:
+            raise AnsibleError(AttributeError(u"'No property/file found '%s'" % (entry_attribute)))
         except ChecksumError:
-            raise AnsibleError("Wrong password/keyfile {}".format(kp_dbx))
+            raise AnsibleError("Wrong password/keyfile {}".format(database_location))
         except (AttributeError, FileNotFoundError) as e:
             raise AnsibleError(e)
-
-    def _fetch_socket(self, kp_soc, entry_path, entry_attr):
-        display.vvvv(u"KeePass: try to socket connect")
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.connect(kp_soc)
-        display.vvvv(u"KeePass: connected")
-        sock.send(json.dumps({'attr': entry_attr, 'path': entry_path}).encode())
-        display.vv(u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
-        try:
-            msg = json.loads(sock.recv(1024).decode())
-        except json.JSONDecodeError as e:
-            raise AnsibleError(str(e))
-        finally:
-            sock.close()
-            display.vvvv(u"KeePass: disconnected")
-
-        if msg['status'] == 'error':
-            raise AnsibleError(msg['text'])
-        return [msg['text']]
