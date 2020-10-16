@@ -3,27 +3,10 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-try:
-    from __main__ import display
-except ImportError:
-    from ansible.utils.display import Display
-    display = Display()
-
-import os
-import base64
-import json
-import socket
-import tempfile
-from pykeepass import PyKeePass
-from construct.core import ChecksumError
-from ansible.errors import AnsibleError
-from ansible.plugins.lookup import LookupBase
-
-
 DOCUMENTATION = """
     lookup: keepass
-    author: Victor Zemtsov <victor.zemtsov@gmail.com>
-    version_added: '0.2'
+    author: dszryan
+    version_added: '0.3'
     short_description: fetch data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry 
@@ -48,6 +31,15 @@ DOCUMENTATION = """
     sample lookup:
       - "{{ lookup('keepass', 'primary', 'path/to/entry', 'property') }}"
 """
+import os
+import base64
+from pykeepass import PyKeePass
+from construct.core import ChecksumError
+from ansible.errors import AnsibleError, AnsibleParserError
+from ansible.plugins.lookup import LookupBase
+from ansible.utils.display import Display
+
+display = Display()
 
 
 class LookupModule(LookupBase):
