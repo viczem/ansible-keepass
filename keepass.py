@@ -93,8 +93,6 @@ class LookupModule(LookupBase):
             if entry_attribute in ['title', 'username', 'password', 'url', 'notes', 'uuid'] :
                 if entry_val.startswith('{REF:') :
                     reference_value = uuid.UUID(entry_val.split(":")[2].strip('}'))
-                    display.vv(u"KeePass: reference[%s]" % reference_value)
-
                     entry = LookupModule.keepass[database_name].find_entries_by_uuid(reference_value, first=True)
                     entry_val = getattr(entry, entry_attribute, '')
 
