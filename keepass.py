@@ -33,6 +33,7 @@ DOCUMENTATION = """
 """
 import os
 import base64
+import uuid
 from pykeepass import PyKeePass
 from construct.core import ChecksumError
 from ansible.errors import AnsibleError, AnsibleParserError
@@ -82,12 +83,20 @@ class LookupModule(LookupBase):
             entry = LookupModule.keepass[database_name].find_entries_by_path(entry_path, first=True)
             if entry is None:
                 raise AnsibleError(u"Entry '%s' is not found" % entry_path)
-            display.vv(u"KeePass: attr: %s in path: %s" % (entry_attribute, entry_path))
+            display.vv(u"KeePass: %s[%s]" % (entry_path, entry_attribute))
 
             # get entry value
             entry_val = getattr(entry, entry_attribute, None) or \
                         entry.custom_properties.get(entry_attribute, None) or \
                         base64.b64encode([attachment for index, attachment in enumerate(entry.attachments) if attachment.filename == entry_attribute][0].binary)
+
+            if entry_attribute in ['title', 'username', 'password', 'url', 'notes', 'uuid'] :
+                if entry_val.startswith('{REF:') :
+                    reference_value = uuid.UUID(entry_val.split(":")[2].strip('}'))
+                    display.vv(u"KeePass: reference[%s]" % reference_value)
+
+                    entry = LookupModule.keepass[database_name].find_entries_by_uuid(reference_value, first=True)
+                    entry_val = getattr(entry, entry_attribute, '')
 
             return [entry_val]
 
