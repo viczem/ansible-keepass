@@ -47,11 +47,12 @@ class LookupModule(LookupBase):
     keepass = {}
 
     def run(self, terms, variables=None, **kwargs):
-        if not terms or len(terms) != 3:
+        if not terms or not (3 <= len(terms) <= 4):
             raise AnsibleError('Wrong request format')
         database_name = terms[0]
         entry_path = terms[1].strip('/')
         entry_attribute = terms[2]
+        default_value = terms[3] if len(terms) == 4 else None
         database_list = variables.get('keepass', '')
 
         # find database in list
@@ -88,18 +89,20 @@ class LookupModule(LookupBase):
             # get entry value
             entry_val = getattr(entry, entry_attribute, None) or \
                         entry.custom_properties.get(entry_attribute, None) or \
-                        base64.b64encode([attachment for index, attachment in enumerate(entry.attachments) if attachment.filename == entry_attribute][0].binary)
+                        ([attachment for index, attachment in enumerate(entry.attachments) if attachment.filename == entry_attribute][0] or None) or \
+                        default_value
 
             if entry_attribute in ['title', 'username', 'password', 'url', 'notes', 'uuid'] :
                 if entry_val.startswith('{REF:') :
                     reference_value = uuid.UUID(entry_val.split(":")[2].strip('}'))
                     entry = LookupModule.keepass[database_name].find_entries_by_uuid(reference_value, first=True)
-                    entry_val = getattr(entry, entry_attribute, '')
+                    entry_val = getattr(entry, entry_attribute, default_value)
 
-            return [entry_val]
+            if len(terms) == 4 or entry_val != None :
+                return [base64.b64encode(entry_val.binary) if hasattr(entry_val, 'binary') else entry_val]
 
-        except IndexError:
-            raise AnsibleError(AttributeError(u"'No property/file found '%s'" % (entry_attribute)))
+            raise AnsibleError(AttributeError(u"'No property/file found '%s'" % entry_attribute))
+
         except ChecksumError:
             raise AnsibleError("Wrong password/keyfile {}".format(database_location))
         except (AttributeError, FileNotFoundError) as e:
