@@ -89,11 +89,11 @@ class LookupModule(LookupBase):
             # get entry value
             entry_val = getattr(entry, entry_attribute, None) or \
                         entry.custom_properties.get(entry_attribute, None) or \
-                        ([attachment for index, attachment in enumerate(entry.attachments) if attachment.filename == entry_attribute][0] or None) or \
+                        ((attachment for index, attachment in enumerate(entry.attachments) if attachment.filename == entry_attribute) or None) or \
                         default_value
 
             if entry_attribute in ['title', 'username', 'password', 'url', 'notes', 'uuid'] :
-                if entry_val.startswith('{REF:') :
+                if hasattr(entry_val, 'startswith') and entry_val.startswith('{REF:') :
                     reference_value = uuid.UUID(entry_val.split(":")[2].strip('}'))
                     entry = LookupModule.keepass[database_name].find_entries_by_uuid(reference_value, first=True)
                     entry_val = getattr(entry, entry_attribute, default_value)
