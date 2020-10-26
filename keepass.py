@@ -6,7 +6,7 @@ __metaclass__ = type
 DOCUMENTATION = """
     lookup: keepass
     author: dszryan
-    version_added: '0.3'
+    version_added: '0.4'
     short_description: fetch data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry 
@@ -21,7 +21,11 @@ DOCUMENTATION = """
         required: True
     notes:
       - https://github.com/viczem/ansible-keepass
-    
+      - when a default value is provided, and the entry is not found
+          1. no expcetion will be thrown AND
+          2. the default value will be returned
+      - when a default value is NOT provided, and the entry is not found
+          1. an exception will be thrown
     sample definition:
       keepass:
         - name: primary
