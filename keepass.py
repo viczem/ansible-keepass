@@ -32,7 +32,7 @@ DOCUMENTATION = """
           location: ~/keepass.kdbx
           password: !vault ...
           keyfile: !vault ...
-      very_secure:  # data is NOT visible at runtime
+      more_secure:  # data is NOT visible at runtime
         data:
           keepass:
             database:
