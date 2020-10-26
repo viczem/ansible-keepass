@@ -14,9 +14,10 @@ DOCUMENTATION = """
     options:
       _terms:
         description: 
-          - name of the database from the list
-          - second is a path to KeePass entry
-          - third is a property name of the entry, e.g. property/custom property/attachment
+          - name of the database from the list (required)
+          - second is a path to KeePass entry (required)
+          - third is a property name of the entry, e.g. property/custom property/attachment (required)
+          - fourth is dafault value to be returned when the required value is not found (optional)
         required: True
     notes:
       - https://github.com/viczem/ansible-keepass
@@ -27,9 +28,15 @@ DOCUMENTATION = """
           location: ~/keepass.kdbx
           password: !vault ...
           keyfile: !vault ...
-
-    sample lookup:
-      - "{{ lookup('keepass', 'primary', 'path/to/entry', 'property') }}"
+      very_secure:  # data is NOT visible at runtime
+        data:
+          keepass:
+            database:
+            entry:
+            property:
+            default:
+      semi_secure:  # data is WILL BE visible at runtime
+        data: "{{ lookup('keepass', 'primary', 'path/to/entry', 'property') }}"
 """
 import os
 import base64
