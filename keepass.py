@@ -27,6 +27,7 @@ DOCUMENTATION = """
       - when a default value is NOT provided, and the entry is not found
           1. an exception will be thrown
     sample definition:
+      ---
       keepass:          # this is a database definition list
         - name: primary
           location: ~/keepass.kdbx
