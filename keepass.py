@@ -27,7 +27,7 @@ DOCUMENTATION = """
       - when a default value is NOT provided, and the entry is not found
           1. an exception will be thrown
     sample definition:
-      ---
+    # ---               # document start indicator in documentation causing execution issues, hence commented out
       keepass:          # this is a database definition list
         - name: primary
           location: ~/keepass.kdbx
