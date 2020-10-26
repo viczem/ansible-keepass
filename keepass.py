@@ -27,18 +27,18 @@ DOCUMENTATION = """
       - when a default value is NOT provided, and the entry is not found
           1. an exception will be thrown
     sample definition:
-      keepass:
+      keepass:          # this is a database definition list
         - name: primary
           location: ~/keepass.kdbx
           password: !vault ...
           keyfile: !vault ...
       more_secure:  # data is NOT visible at runtime
         data:
-          keepass:
-            database:
-            entry:
-            property:
-            default:
+          keepass:      # this is a usage definition
+            database: primary
+            entry: path/to/entry
+            property: property
+            default: ''
       semi_secure:  # data is WILL BE visible at runtime
         data: "{{ lookup('keepass', 'primary', 'path/to/entry', 'property') }}"
 """
