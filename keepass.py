@@ -32,6 +32,11 @@ DOCUMENTATION = """
         description: 
           - first is a path to KeePass entry
           - second is a property name of the entry, e.g. username or password
+          - third is optional, and describes the type of second parameter:
+            - False or None: Normal property
+            - 'attachment': Attachment as binary
+            - 'attachment_text': Attachment as utf8-string
+            - Otherwise: Custom property
         required: True
     notes:
       - https://github.com/viczem/ansible-keepass
@@ -50,10 +55,10 @@ class LookupModule(LookupBase):
         entry_path = terms[0].strip('/')
         entry_attr = terms[1]
         enable_custom_attr = False
-        
+
         if len(terms) == 3:
             enable_custom_attr = terms[2]
-        
+
         kp_dbx = variables.get('keepass_dbx', '')
         kp_dbx = os.path.realpath(os.path.expanduser(kp_dbx))
         if os.path.isfile(kp_dbx):
@@ -79,14 +84,26 @@ class LookupModule(LookupBase):
         try:
             if not LookupModule.keepass:
                 LookupModule.keepass = PyKeePass(kp_dbx, kp_psw, kp_key)
-            entry = LookupModule.keepass.\
+            entry = LookupModule.keepass. \
                 find_entries_by_path(entry_path, first=True)
             if entry is None:
                 raise AnsibleError(u"Entry '%s' is not found" % entry_path)
             display.vv(
                 u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
             entry_val = None
-            if enable_custom_attr:
+            if enable_custom_attr == 'attachment' or enable_custom_attr == 'attachment_text':
+                for att in entry.attachments:
+                    if att.filename == entry_attr:
+                        entry_val = att.binary
+                        break
+                if entry_val is not None:
+                    if enable_custom_attr == 'attachment_text':
+                        return [entry_val.decode('utf-8')]
+                    else:
+                        return [entry_val]
+                else:
+                    raise AnsibleError(AttributeError(u"'No attachment '%s'" % (entry_attr)))
+            elif enable_custom_attr:
                 entry_val = entry.get_custom_property(entry_attr)
                 if entry_val is not None:
                     return [entry_val]
