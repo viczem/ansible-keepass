@@ -7,9 +7,9 @@ instead of duplicating to `ansible-vault`.
 
 ## Installation
 
-Dependency: `pykeepass`
+Dependency: `pykeepass==3.2.0 `
 
-    pip install pykeepass --user
+    pip install pykeepass==3.2.0 --user
     mkdir -p ~/.ansible/plugins/lookup && cd "$_"
     curl https://raw.githubusercontent.com/viczem/ansible-keepass/master/keepass.py -o ./keepass.py
 
