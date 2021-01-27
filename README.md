@@ -75,9 +75,10 @@ To send the running command in background press <kbd>CTRL</kbd>+<kbd>Z</kbd> and
 Define variables you need e.g. in any file in group_vars
 
 
-    ansible_user        : "{{ lookup('keepass', 'path/to/entry', 'username') }}"
-    ansible_become_pass : "{{ lookup('keepass', 'path/to/entry', 'password') }}"
-    ansible_custom_field: "{{ lookup('keepass', 'path/to/entry', 'custom_field_property', true) }}"
+    ansible_user             : "{{ lookup('keepass', 'path/to/entry', 'username') }}"
+    ansible_become_pass      : "{{ lookup('keepass', 'path/to/entry', 'password') }}"
+    ansible_custom_field     : "{{ lookup('keepass', 'path/to/entry', 'custom_field_property', true) }}"
+    ansible_all_custom_fields: "{{ lookup('keepass', 'path/to/entry', '*', true) }}"
 
 
 You can get another [properties of an KeePass entry](https://github.com/pschmitt/pykeepass/blob/master/pykeepass/entry.py)
