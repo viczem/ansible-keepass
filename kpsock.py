@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -11,7 +11,7 @@ import logging
 from logging import config as logging_config
 from getpass import getpass
 from pykeepass import PyKeePass
-from pykeepass.exceptions import CredentialsIntegrityError
+from pykeepass.exceptions import CredentialsError
 
 
 try:
@@ -71,7 +71,7 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
 
                             conn.send(_msg('ok', getattr(entr, attr)))
                             log.info('Fetch %s: %s', path, attr)
-    except CredentialsIntegrityError:
+    except CredentialsError:
         log.error("%s failed to decrypt" % kdbx)
         sys.exit(1)
     except FileNotFoundError as e:
