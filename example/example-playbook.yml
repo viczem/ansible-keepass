@@ -8,6 +8,7 @@
     ham_login: "{{ lookup('keepass', 'example/ham', 'username')}}"
     ham_password: "{{ lookup('keepass', 'example/ham', 'password')}}"
     pork_custom_property: "{{ lookup('keepass', 'example/pork', 'pork_custom_property', true)}}"
+    pork_all_custom_properties: "{{ lookup('keepass', 'example/pork', '*', true)}}"
 
   tasks:
     - debug:
@@ -18,3 +19,6 @@
 
     - debug:
         msg: "fetch group: /example/pork     pork_custom: {{ pork_custom_property }}"
+
+    - debug:
+        msg: "fetch group: /example/pork     pork_all_custom_properties: {{ pork_all_custom_properties }}"
