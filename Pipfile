@@ -7,7 +7,7 @@ verify_ssl = true
 
 [packages]
 ansible = "*"
-pykeepass = ">=3.2.1"
+pykeepass = "==3.2.1"
 cryptography = ">=3.3.2"
 
 [requires]
