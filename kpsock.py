@@ -24,11 +24,11 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
     log = logging.getLogger('ansible_keepass')
 
     try:
+        os.umask(0o177)
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
             s.bind(sock_fpath)
             s.listen(1)
             s.settimeout(ttl)
-            os.chmod(sock_fpath, 0o600)
             log.info('Open ansible-keepass socket. TTL={}sec'.format(ttl))
 
             with PyKeePass(kdbx, psw, kdbx_key) as kp:
