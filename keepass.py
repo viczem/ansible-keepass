@@ -86,7 +86,7 @@ class LookupModule(LookupBase):
             if not LookupModule.keepass:
                 LookupModule.keepass = PyKeePass(kp_dbx, kp_psw, kp_key)
             entry = LookupModule.keepass.\
-                find_entries_by_path(entry_path, first=True)
+                find_entries(title=entry_path, first=True)
             if entry is None:
                 raise AnsibleError(u"Entry '%s' is not found" % entry_path)
             display.vv(
