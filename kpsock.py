@@ -53,8 +53,9 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
                             path = msg['path'].strip('/')
                             attr = msg['attr']
                             enable_custom_attr = msg.get('enable_custom_attr', False)
+                            entry_path_list = entry_path.split("/")
                             log.debug("attr: %s in path: %s" % (attr, path))
-                            entr = kp.find_entries(title=entry_path, first=True)
+                            entr = kp.find_entries(path=entry_path_list, first=True)
 
                             if entr is None:
                                 conn.send(
