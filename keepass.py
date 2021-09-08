@@ -82,13 +82,14 @@ class LookupModule(LookupBase):
             if os.path.isfile(kp_key):
                 display.vvv(u"Keepass: database keyfile: %s" % kp_key)
 
-        try:
+        try:           
+            entry_path_list = entry_path.split("/")
             if not LookupModule.keepass:
                 LookupModule.keepass = PyKeePass(kp_dbx, kp_psw, kp_key)
             entry = LookupModule.keepass.\
-                find_entries(title=entry_path, first=True)
+                find_entries(path=entry_path_list, first=True)
             if entry is None:
-                raise AnsibleError(u"Entry '%s' is not found" % entry_path)
+                raise AnsibleError(u"Entry '%s' is not found " % entry_path_list )
             display.vv(
                 u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
             entry_val = None
