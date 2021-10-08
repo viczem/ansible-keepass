@@ -11,7 +11,7 @@ Dependency: `pykeepass>=3.2.1`
 
     pip install pykeepass --user
     mkdir -p ~/.ansible/plugins/lookup && cd "$_"
-    curl https://gitlab.ti.umontreal.ca/gp_public/ansible-keepass/-/raw/main/keepass.py -o ./keepass.py
+    curl https://raw.githubusercontent.com/viczem/ansible-keepass/master/keepass.py -o ./keepass.py
 
 [More about ansible plugins installation](https://docs.ansible.com/ansible/latest/dev_guide/developing_locally.html)
 
