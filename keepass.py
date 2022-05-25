@@ -13,8 +13,6 @@ import os
 import json
 import socket
 import tempfile
-from pykeepass import PyKeePass
-from construct.core import ChecksumError
 from ansible.errors import AnsibleError
 from ansible.plugins.lookup import LookupBase
 
@@ -22,7 +20,7 @@ from ansible.plugins.lookup import LookupBase
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <victor.zemtsov@gmail.com>
-    version_added: '0.2'
+    version_added: '0.4.0'
     short_description: fetch data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry 
@@ -69,41 +67,6 @@ class LookupModule(LookupBase):
         if os.path.exists(kp_soc):
             display.v(u"Keepass: fetch from socket")
             return self._fetch_socket(kp_soc, entry_path, entry_attr, enable_custom_attr)
-
-        kp_psw = self._templar.template(variables_for_templating.get('keepass_psw', ''), fail_on_undefined=True)
-        kp_key = self._templar.template(variables_for_templating.get('keepass_key', ''), fail_on_undefined=True)
-        display.v(u"Keepass: fetch from kdbx file")
-        return self._fetch_file(
-            kp_dbx, str(kp_psw), kp_key, entry_path, entry_attr, enable_custom_attr)
-
-    def _fetch_file(self, kp_dbx, kp_psw, kp_key, entry_path, entry_attr, enable_custom_attr):
-        if kp_key:
-            kp_key = os.path.realpath(os.path.expanduser(kp_key))
-            if os.path.isfile(kp_key):
-                display.vvv(u"Keepass: database keyfile: %s" % kp_key)
-
-        try:
-            if not LookupModule.keepass:
-                LookupModule.keepass = PyKeePass(kp_dbx, kp_psw, kp_key)
-            entry = LookupModule.keepass.\
-                find_entries_by_path(entry_path, first=True)
-            if entry is None:
-                raise AnsibleError(u"Entry '%s' is not found" % entry_path)
-            display.vv(
-                u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
-            entry_val = None
-            if enable_custom_attr:
-                entry_val = entry.get_custom_property(entry_attr)
-                if entry_val is not None:
-                    return [entry_val]
-                else:
-                    raise AnsibleError(AttributeError(u"'No custom field property '%s'" % (entry_attr)))
-            else:
-                return [getattr(entry, entry_attr)]
-        except ChecksumError:
-            raise AnsibleError("Wrong password/keyfile {}".format(kp_dbx))
-        except (AttributeError, FileNotFoundError) as e:
-            raise AnsibleError(e)
 
     def _fetch_socket(self, kp_soc, entry_path, entry_attr, enable_custom_attr):
         display.vvvv(u"KeePass: try to socket connect")

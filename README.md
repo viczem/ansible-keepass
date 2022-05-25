@@ -23,27 +23,7 @@ Dependency: `pykeepass==3.2.1`
 - `keepass_key` - [*optional*] path to keyfile
 
 
-## Usage
-
-For global variables define them once in `group_vars/all`.
-
-For security reasons, do not store KeePass password in plain text. 
-Use `ansible-vault encrypt_string` to encrypt the password. 
-I'm not sure, but I think that for simplicity, 
-it is safe to use the same `ansible-vault` password as KeePass password.
-To decrypt the passwod use `--ask-vault-pass`
- e.g. `ansible all -m ping --ask-vault-pass`.
-
-
-    # file: group_vars/all
-    
-    keepass_dbx: "~/.keepass/database.kdbx"
-    keepass_psw: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          ...
-
-
-### Alternative usage with UNIX socket
+## Usage with UNIX socket
 
 > _This usage is more preferred for performance reason, 
 because of KeePass file stay decrypted and not need to reopen after done each playbook task 
