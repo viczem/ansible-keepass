@@ -1,6 +1,5 @@
-role_keepass_db: "./example.kdbx"
-
-keepass_dbx: "{{ role_keepass_db }}"
+keepass_ttl: 3
+keepass_dbx: "./example.kdbx"
 keepass_psw: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           30656633313531336265353862356135373963636339376266373137376136636634393932623961
