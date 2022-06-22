@@ -84,7 +84,7 @@ class LookupModule(LookupBase):
             raise AnsibleError("KeePass: 'keepass_psw' is not set")
 
         # TTL of keepass socket (optional, default: 60 seconds)
-        var_ttl = self._var(str(variables_.get("keepass_ttl", 60)))
+        var_ttl = self._var(str(variables_.get("keepass_ttl", "60")))
 
         # UNIX socket path for a dbx (supported multiple dbx)
         tempdir = tempfile.gettempdir()
@@ -202,14 +202,16 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60):
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
             s.bind(sock_path)
             s.listen(1)
-            s.settimeout(ttl)
+            if ttl > 0:
+                s.settimeout(ttl)
             kp = None
             is_open = True
 
             while is_open:
                 conn, addr = s.accept()
                 with conn:
-                    conn.settimeout(ttl)
+                    if ttl > 0:
+                        conn.settimeout(ttl)
                     while True:
                         data = conn.recv(1024).decode()
                         if not data:

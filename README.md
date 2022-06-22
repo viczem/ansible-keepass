@@ -12,9 +12,9 @@ The UNIX socket file is stored in a temporary folder according to OS.
 
 ## Installation
 
-Requirements: `python 3`, `pykeepass==4.0.1`
+Requirements: `python 3`, `pykeepass==4.0.2`
 
-    pip install 'pykeepass==4.0.1' --user
+    pip install 'pykeepass==4.0.2' --user
     mkdir -p ~/.ansible/plugins/lookup && cd "$_"
     curl https://raw.githubusercontent.com/viczem/ansible-keepass/main/keepass.py -o ./keepass.py
 
