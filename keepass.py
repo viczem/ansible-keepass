@@ -86,15 +86,7 @@ class LookupModule(LookupBase):
         # TTL of keepass socket (optional, default: 60 seconds)
         var_ttl = self._var(str(variables_.get("keepass_ttl", "60")))
 
-        # UNIX socket path for a dbx (supported multiple dbx)
-        tempdir = tempfile.gettempdir()
-        if not os.access(tempdir, os.W_OK):
-            raise AnsibleError("KeePass: no write permissions to '%s'" % tempdir)
-
-        socket_path_suffix = hashlib.sha1(
-            ("%s%s" % (getpass.getuser(), var_dbx)).encode()
-        ).hexdigest()[:8]
-        socket_path = "%s/ansible-keepass-%s.sock" % (tempdir, socket_path_suffix)
+        socket_path = _keepass_socket_path(var_dbx)
 
         try:
             # If UNIX socket file is not exists then the socket is not running
@@ -332,6 +324,8 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60):
         sys.exit(1)
     except socket.timeout:
         pass
+    except KeyboardInterrupt:
+        pass
     finally:
         if os.path.exists(sock_path):
             os.remove(sock_path)
@@ -356,11 +350,32 @@ def _resp(cmd, status_code, payload=""):
     return "\n".join((cmd, str(status_code), str(payload))).encode()
 
 
+def _keepass_socket_path(dbx_path):
+    # UNIX socket path for a dbx (supported multiple dbx)
+    tempdir = tempfile.gettempdir()
+    if not os.access(tempdir, os.W_OK):
+        raise AnsibleError("KeePass: no write permissions to '%s'" % tempdir)
+
+    suffix = hashlib.sha1(("%s%s" % (getpass.getuser(), dbx_path)).encode()).hexdigest()
+    return "%s/ansible-keepass-%s.sock" % (tempdir, suffix[:8])
+
+
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("kdbx", type=str)
-    arg_parser.add_argument("kdbx_sock", type=str)
-    arg_parser.add_argument("ttl", type=int, default=60)
+    arg_parser.add_argument("kdbx_sock", type=str, nargs="?", default=None)
+    arg_parser.add_argument("ttl", type=int, nargs="?", default=0)
     arg_parser.add_argument("--key", type=str, nargs="?", default=None)
     args = arg_parser.parse_args()
-    _keepass_socket(args.kdbx, args.key, args.kdbx_sock, args.ttl)
+
+    kdbx = os.path.realpath(os.path.expanduser(os.path.expandvars(args.kdbx)))
+    if args.key:
+        key = os.path.realpath(os.path.expanduser(os.path.expandvars(args.key)))
+    else:
+        key = None
+
+    if args.kdbx_sock:
+        kdbx_sock = args.kdbx_sock
+    else:
+        kdbx_sock = _keepass_socket_path(kdbx)
+    _keepass_socket(kdbx, key, kdbx_sock, args.ttl)
