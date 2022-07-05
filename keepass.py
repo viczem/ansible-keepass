@@ -92,21 +92,25 @@ class LookupModule(LookupBase):
             # If UNIX socket file is not exists then the socket is not running
             stat.S_ISSOCK(os.stat(socket_path).st_mode)
         except FileNotFoundError:
-            cmd = [
-                "/usr/bin/env",
-                "python3",
-                os.path.abspath(__file__),
-                var_dbx,
-                socket_path,
-                var_ttl,
-            ]
-            if var_key:
-                cmd.append("--key=%s" % var_key)
-            try:
-                display.v("KeePass: run socket for %s" % var_dbx)
-                subprocess.Popen(cmd)
-            except OSError:
-                raise AnsibleError(traceback.format_exc())
+            lock_file_ = socket_path + ".lock"
+            if not os.path.isfile(lock_file_):
+                open(lock_file_, 'a').close()
+
+                cmd = [
+                    "/usr/bin/env",
+                    "python3",
+                    os.path.abspath(__file__),
+                    var_dbx,
+                    socket_path,
+                    var_ttl,
+                ]
+                if var_key:
+                    cmd.append("--key=%s" % var_key)
+                try:
+                    display.v("KeePass: run socket for %s" % var_dbx)
+                    subprocess.Popen(cmd)
+                except OSError:
+                    raise AnsibleError(traceback.format_exc())
 
             attempts = 10
             success = False
@@ -334,6 +338,10 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
         if os.path.exists(sock_path):
             os.remove(sock_path)
 
+        lock_file_ = sock_path + ".lock"
+        if os.path.isfile(lock_file_):
+            os.remove(lock_file_)
+
 
 def _rq(cmd, *arg):
     """Request to keepass socket
@@ -389,5 +397,9 @@ if __name__ == "__main__":
         password = getpass.getpass("Password: ")
         if isinstance(password, bytes):
             password = password.decode(sys.stdin.encoding)
+
+    lock_file = kdbx_sock + ".lock"
+    if not os.path.isfile(lock_file):
+        open(lock_file, 'a').close()
 
     _keepass_socket(kdbx, key, kdbx_sock, args.ttl, password)
