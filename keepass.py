@@ -177,7 +177,7 @@ class LookupModule(LookupBase):
             display.vvv("KeePass: disconnect from '%s'" % kp_soc)
 
 
-def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60):
+def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
     """
 
     :param str kdbx:
@@ -196,7 +196,11 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60):
             s.listen(1)
             if ttl > 0:
                 s.settimeout(ttl)
-            kp = None
+            if kdbx_password:
+                kp = PyKeePass(kdbx, kdbx_password, kdbx_key)
+            else:
+                kp = None
+
             is_open = True
 
             while is_open:
@@ -366,6 +370,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("kdbx_sock", type=str, nargs="?", default=None)
     arg_parser.add_argument("ttl", type=int, nargs="?", default=0)
     arg_parser.add_argument("--key", type=str, nargs="?", default=None)
+    arg_parser.add_argument("--ask-pass", action=argparse.BooleanOptionalAction)
     args = arg_parser.parse_args()
 
     kdbx = os.path.realpath(os.path.expanduser(os.path.expandvars(args.kdbx)))
@@ -378,4 +383,11 @@ if __name__ == "__main__":
         kdbx_sock = args.kdbx_sock
     else:
         kdbx_sock = _keepass_socket_path(kdbx)
-    _keepass_socket(kdbx, key, kdbx_sock, args.ttl)
+
+    password = None
+    if args.ask_pass:
+        password = getpass.getpass("Password: ")
+        if isinstance(password, bytes):
+            password = password.decode(sys.stdin.encoding)
+
+    _keepass_socket(kdbx, key, kdbx_sock, args.ttl, password)
