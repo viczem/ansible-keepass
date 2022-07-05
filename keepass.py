@@ -110,6 +110,7 @@ class LookupModule(LookupBase):
                     display.v("KeePass: run socket for %s" % var_dbx)
                     subprocess.Popen(cmd)
                 except OSError:
+                    os.remove(lock_file_)
                     raise AnsibleError(traceback.format_exc())
 
             attempts = 10
