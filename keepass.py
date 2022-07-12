@@ -1,24 +1,22 @@
 __metaclass__ = type
 
-import os
-import re
-import socket
-import tempfile
-from pykeepass import PyKeePass
-from pykeepass.exceptions import CredentialsError
-from ansible.errors import AnsibleError
-from ansible.plugins.lookup import LookupBase
-from ansible.utils.display import Display
-
-import time
-import subprocess
-import sys
 import argparse
 import getpass
 import hashlib
+import os
+import re
+import socket
+import subprocess
+import sys
+import tempfile
+import time
 import traceback
-import stat
 
+from ansible.errors import AnsibleError
+from ansible.plugins.lookup import LookupBase
+from ansible.utils.display import Display
+from pykeepass import PyKeePass
+from pykeepass.exceptions import CredentialsError
 
 DOCUMENTATION = """
     lookup: keepass
@@ -42,7 +40,6 @@ DOCUMENTATION = """
       - "{{ lookup('keepass', 'path/to/entry', 'password') }}"
       - "{{ lookup('keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
 """
-
 
 display = Display()
 
@@ -87,31 +84,25 @@ class LookupModule(LookupBase):
         var_ttl = self._var(str(variables_.get("keepass_ttl", "60")))
 
         socket_path = _keepass_socket_path(var_dbx)
+        lock_file_ = socket_path + ".lock"
 
-        try:
-            # If UNIX socket file is not exists then the socket is not running
-            stat.S_ISSOCK(os.stat(socket_path).st_mode)
-        except FileNotFoundError:
-            lock_file_ = socket_path + ".lock"
-            if not os.path.isfile(lock_file_):
-                open(lock_file_, 'a').close()
-
-                cmd = [
-                    "/usr/bin/env",
-                    "python3",
-                    os.path.abspath(__file__),
-                    var_dbx,
-                    socket_path,
-                    var_ttl,
-                ]
-                if var_key:
-                    cmd.append("--key=%s" % var_key)
-                try:
-                    display.v("KeePass: run socket for %s" % var_dbx)
-                    subprocess.Popen(cmd)
-                except OSError:
-                    os.remove(lock_file_)
-                    raise AnsibleError(traceback.format_exc())
+        if not os.path.isfile(lock_file_):
+            cmd = [
+                "/usr/bin/env",
+                "python3",
+                os.path.abspath(__file__),
+                var_dbx,
+                socket_path,
+                var_ttl,
+            ]
+            if var_key:
+                cmd.append("--key=%s" % var_key)
+            try:
+                display.v("KeePass: run socket for %s" % var_dbx)
+                subprocess.Popen(cmd)
+            except OSError:
+                os.remove(lock_file_)
+                raise AnsibleError(traceback.format_exc())
 
             attempts = 10
             success = False
@@ -139,6 +130,7 @@ class LookupModule(LookupBase):
 
             if not success:
                 raise AnsibleError("KeePass: socket connection failed for %s" % var_dbx)
+
             display.v("KeePass: open socket for %s -> %s" % (var_dbx, socket_path))
 
         if len(terms) == 1 and terms[0] in ("quit", "exit", "close"):
@@ -401,6 +393,5 @@ if __name__ == "__main__":
 
     lock_file = kdbx_sock + ".lock"
     if not os.path.isfile(lock_file):
-        open(lock_file, 'a').close()
-
-    _keepass_socket(kdbx, key, kdbx_sock, args.ttl, password)
+        open(lock_file, "a").close()
+        _keepass_socket(kdbx, key, kdbx_sock, args.ttl, password)
