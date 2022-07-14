@@ -186,6 +186,7 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
     Socket messages have multiline format.
     First line is a command for both messages are request and response
     """
+    tmp_files = []
     try:
         os.umask(0o177)
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
@@ -302,6 +303,46 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                 )
                             )
                             break
+                        elif prop == "attachment":
+                            if arg_len == 2:
+                                conn.send(
+                                    _resp(
+                                        "fetch",
+                                        1,
+                                        "attachment key is not set "
+                                        "for '%s'".format(arg[0]),
+                                    )
+                                )
+                                break
+
+                            prop_key = arg[2]
+                            attachment = None
+                            for attachment in entry.attachments:
+                                if attachment.filename == prop_key:
+                                    break
+                            if attachment is None:
+                                conn.send(
+                                    _resp(
+                                        "fetch",
+                                        1,
+                                        "attachment '%s' is not found "
+                                        "for '%s'".format(prop_key, path),
+                                    )
+                                )
+                                break
+
+                            tmp_file = tempfile.mkstemp(suffix=f".{attachment.filename}")[1]
+                            with open(tmp_file, "wb") as f:
+                                f.write(attachment.data)
+                            tmp_files.append(tmp_file)
+                            conn.send(
+                                _resp(
+                                    "fetch",
+                                    0,
+                                    tmp_file,
+                                )
+                            )
+                            break
 
                         if not hasattr(entry, prop):
                             conn.send(
@@ -327,6 +368,9 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
     except KeyboardInterrupt:
         pass
     finally:
+        for tmp_file in tmp_files:
+            if os.path.exists(tmp_file):
+                os.remove(tmp_file)
         if os.path.exists(sock_path):
             os.remove(sock_path)
 
