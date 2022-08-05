@@ -160,13 +160,13 @@ class LookupModule(LookupBase):
             if resp_len == 0:
                 raise AnsibleError("KeePass: '%s' result is empty" % cmd)
 
-            if resp_len == 3:
+            if resp_len >= 3:
                 if resp[0] != cmd:
                     raise AnsibleError(
                         "KeePass: received command '%s', expected '%s'" % (resp[0], cmd)
                     )
                 if resp[1] == "0":
-                    return [resp[2]]
+                    return [os.linesep.join(resp[2:])]
                 else:
                     raise AnsibleError("KeePass: '%s' has error '%s'" % (resp[2], cmd))
 
