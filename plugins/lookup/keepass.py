@@ -23,7 +23,7 @@ import stat
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <viczem.dev@gmail.com>
-    version_added: '0.4.1'
+    version_added: '0.5.0'
     short_description: Fetching data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry 
