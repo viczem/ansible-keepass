@@ -370,7 +370,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("kdbx_sock", type=str, nargs="?", default=None)
     arg_parser.add_argument("ttl", type=int, nargs="?", default=0)
     arg_parser.add_argument("--key", type=str, nargs="?", default=None)
-    arg_parser.add_argument("--ask-pass", action=argparse.BooleanOptionalAction)
+    arg_parser.add_argument("--ask-pass", action="store_true")
     args = arg_parser.parse_args()
 
     kdbx = os.path.realpath(os.path.expanduser(os.path.expandvars(args.kdbx)))
