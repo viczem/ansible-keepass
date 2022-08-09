@@ -21,7 +21,7 @@ from pykeepass.exceptions import CredentialsError
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <viczem.dev@gmail.com>
-    version_added: '0.5.0'
+    version_added: '0.5.1'
     short_description: Fetching data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("kdbx_sock", type=str, nargs="?", default=None)
     arg_parser.add_argument("ttl", type=int, nargs="?", default=0)
     arg_parser.add_argument("--key", type=str, nargs="?", default=None)
-    arg_parser.add_argument("--ask-pass", action=argparse.BooleanOptionalAction)
+    arg_parser.add_argument("--ask-pass", action="store_true")
     args = arg_parser.parse_args()
 
     kdbx = os.path.realpath(os.path.expanduser(os.path.expandvars(args.kdbx)))
