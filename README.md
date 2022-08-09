@@ -1,6 +1,6 @@
 # Ansible KeePass Lookup Plugin
 
-The plugin allows to read data from KeePass file (modifying is not supported)
+This collection provides a plugin that allows to read data from KeePass file (modifying is not supported)
 
 ## How it works
 
@@ -12,11 +12,10 @@ The UNIX socket file is stored in a temporary folder according to OS.
 
 ## Installation
 
-Requirements: `python 3`, `pykeepass==4.0.2`
+Requirements: `python 3`, `pykeepass==4.0.3`
 
-    pip install 'pykeepass==4.0.2' --user
-    mkdir -p ~/.ansible/plugins/lookup && cd "$_"
-    curl https://raw.githubusercontent.com/viczem/ansible-keepass/main/keepass.py -o ./keepass.py
+    pip install 'pykeepass==4.0.3' --user
+    ansible-galaxy collection install viczem.keepass
 
 
 ## Variables
@@ -44,8 +43,8 @@ Use `ansible-vault encrypt_string` to encrypt it and use it like below
 
 ### Example
 
-    ansible_user             : "{{ lookup('keepass', 'path/to/entry', 'username') }}"
-    ansible_become_pass      : "{{ lookup('keepass', 'path/to/entry', 'password') }}"
-    ansible_custom_field     : "{{ lookup('keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
+    ansible_user             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'username') }}"
+    ansible_become_pass      : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'password') }}"
+    ansible_custom_field     : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
 
-More examples see in [/examples](/examples).
+More examples see in [/doc/examples](/doc/examples).

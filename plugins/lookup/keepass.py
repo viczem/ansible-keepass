@@ -21,24 +21,24 @@ from pykeepass.exceptions import CredentialsError
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <viczem.dev@gmail.com>
-    version_added: '0.4.1'
+    version_added: '0.5.0'
     short_description: Fetching data from KeePass file
     description:
-        - This lookup returns a value of a property of a KeePass entry 
+        - This lookup returns a value of a property of a KeePass entry
         - which fetched by given path
     options:
       _terms:
-        description: 
+        description:
           - first is a path to KeePass entry
           - second is a property name of the entry, e.g. username or password
         required: True
     notes:
       - https://github.com/viczem/ansible-keepass
-    
+
     examples:
       - "{{ lookup('keepass', 'path/to/entry', 'username') }}"
       - "{{ lookup('keepass', 'path/to/entry', 'password') }}"
-      - "{{ lookup('keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
+      - "{{ lookup('keepass', 'path/to/entry', 'custom_properties', 'my_prop_name') }}"
 """
 
 display = Display()
@@ -157,13 +157,13 @@ class LookupModule(LookupBase):
             if resp_len == 0:
                 raise AnsibleError("KeePass: '%s' result is empty" % cmd)
 
-            if resp_len == 3:
+            if resp_len >= 3:
                 if resp[0] != cmd:
                     raise AnsibleError(
                         "KeePass: received command '%s', expected '%s'" % (resp[0], cmd)
                     )
                 if resp[1] == "0":
-                    return [resp[2]]
+                    return [os.linesep.join(resp[2:])]
                 else:
                     raise AnsibleError("KeePass: '%s' has error '%s'" % (resp[2], cmd))
 
@@ -267,7 +267,7 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
 
                         if entry is None:
                             conn.send(
-                                _resp("fetch", 1, "path '%s' is not found".format(path))
+                                _resp("fetch", 1, "path '%s' is not found" % path)
                             )
                             break
 
@@ -278,8 +278,7 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                     _resp(
                                         "fetch",
                                         1,
-                                        "custom_property key is not set "
-                                        "for '%s'".format(arg[0]),
+                                        "no custom_property key for '%s'" % arg[0],
                                     )
                                 )
                                 break
@@ -290,8 +289,8 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                     _resp(
                                         "fetch",
                                         1,
-                                        "custom_property '%s' is not found "
-                                        "for '%s'".format(prop_key, path),
+                                        "custom_property '%s' is not found for '%s'"
+                                        "" % (prop_key, path),
                                     )
                                 )
                                 break
@@ -309,7 +308,7 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                 _resp(
                                     "fetch",
                                     1,
-                                    "unknown property '%s' for '%s'".format(prop, path),
+                                    "unknown property '%s' for '%s'" % (prop, path),
                                 )
                             )
                             break
