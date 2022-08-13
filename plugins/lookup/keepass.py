@@ -39,6 +39,7 @@ DOCUMENTATION = """
       - "{{ lookup('keepass', 'path/to/entry', 'username') }}"
       - "{{ lookup('keepass', 'path/to/entry', 'password') }}"
       - "{{ lookup('keepass', 'path/to/entry', 'custom_properties', 'my_prop_name') }}"
+      - "{{ lookup('keepass', 'path/to/entry', 'attachments', 'my_file_name') }}"
 """
 
 display = Display()
@@ -303,7 +304,7 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                 )
                             )
                             break
-                        if prop == "attachment":
+                        if prop == "attachments":
                             if arg_len == 2:
                                 conn.send(
                                     _resp(
