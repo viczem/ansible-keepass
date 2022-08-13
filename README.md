@@ -45,6 +45,7 @@ Use `ansible-vault encrypt_string` to encrypt it and use it like below
 
     ansible_user             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'username') }}"
     ansible_become_pass      : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'password') }}"
-    ansible_custom_field     : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
+    custom_field             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
+    attachment               : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'attachments', 'a_file_name') }}"
 
 More examples see in [/doc/examples](/doc/examples).
