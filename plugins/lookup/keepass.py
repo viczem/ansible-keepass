@@ -317,8 +317,9 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
 
                             prop_key = arg[2]
                             attachment = None
-                            for attachment in entry.attachments:
-                                if attachment.filename == prop_key:
+                            for _ in entry.attachments:
+                                if _.filename == prop_key:
+                                    attachment = _
                                     break
                             if attachment is None:
                                 conn.send(
