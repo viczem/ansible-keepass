@@ -303,14 +303,13 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                 )
                             )
                             break
-                        elif prop == "attachment":
+                        if prop == "attachment":
                             if arg_len == 2:
                                 conn.send(
                                     _resp(
                                         "fetch",
                                         1,
-                                        "attachment key is not set "
-                                        "for '%s'".format(arg[0]),
+                                        "attachment key is not set for '%s'" % arg[0],
                                     )
                                 )
                                 break
@@ -326,22 +325,16 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                         "fetch",
                                         1,
                                         "attachment '%s' is not found "
-                                        "for '%s'".format(prop_key, path),
+                                        "for '%s'" % (prop_key, path),
                                     )
                                 )
                                 break
 
-                            tmp_file = tempfile.mkstemp(suffix=f".{attachment.filename}")[1]
+                            tmp_file = tempfile.mkstemp(f".{attachment.filename}")[1]
                             with open(tmp_file, "wb") as f:
                                 f.write(attachment.data)
                             tmp_files.append(tmp_file)
-                            conn.send(
-                                _resp(
-                                    "fetch",
-                                    0,
-                                    tmp_file,
-                                )
-                            )
+                            conn.send(_resp("fetch", 0, tmp_file))
                             break
 
                         if not hasattr(entry, prop):
