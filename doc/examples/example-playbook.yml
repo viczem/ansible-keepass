@@ -10,6 +10,7 @@
     slash_login: "{{ lookup('viczem.keepass.keepass', 'slash\\/group/slash\\/title', 'username') }}"
     slash_url: "{{ lookup('viczem.keepass.keepass', 'slash\\/group/slash\\/title', 'url') }}"
     pork_custom_property: "{{ lookup('viczem.keepass.keepass', 'example/pork', 'custom_properties', 'pork_custom_property')}}"
+    attachment: "{{ lookup('viczem.keepass.keepass', 'example/pork', 'attachments', 'test.txt')}}"
     keepass_attachment_1_name: "attachment_1.txt"
     keepass_attachment_2_name: "attachment_2.zip"
 
@@ -19,6 +20,9 @@
 
     - debug:
         msg: "fetch entry: '/examples/ham'; username: '{{ ham_login }}'; password: '{{ ham_password }}'"
+
+    - debug:
+        msg: "fetch entry: '/examples/port'; attachments: 'text.txt' -  '{{ attachment }}'"
 
     - name: pause to emulate long time operation (greater than keepass_ttl)
       pause:
