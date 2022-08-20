@@ -40,13 +40,18 @@ Use `ansible-vault encrypt_string` to encrypt it and use it like below
           $ANSIBLE_VAULT;1.1;AES256
           ...encrypted password...
 
-### Example
+### Examples
+
+More examples see in [/docs/examples](/docs/examples).
+
+#### Lookup
 
     ansible_user             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'username') }}"
     ansible_become_pass      : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'password') }}"
     custom_field             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
     attachment               : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'attachments', 'a_file_name') }}"
-    
+
+#### Module
     - name: "Export file: attachment.txt"
         viczem.keepass.attachment:
           database: "{{ keepass_dbx }}"
@@ -55,8 +60,6 @@ Use `ansible-vault encrypt_string` to encrypt it and use it like below
           attachment: "attachment.txt"
           dest: "{{ keepass_attachment_1_name }}"
 
-More examples see in [/docs/examples](/docs/examples).
-
 ## Contributing
 
-See docs/contributing.
+See [/docs/contributing](docs/contributing).
