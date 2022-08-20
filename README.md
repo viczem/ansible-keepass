@@ -1,14 +1,13 @@
 # Ansible KeePass Lookup Plugin
 
-This collection provides a plugin that allows to read data from KeePass file (modifying is not supported)
+This collection provides plugins that allows to read data from KeePass file (modifying is not supported)
 
 ## How it works
 
-The plugin opens a UNIX socket with decrypted KeePass file. 
+The lookup plugin opens a UNIX socket with decrypted KeePass file. 
 For performance reasons, decryption occurs only once at socket startup, 
 and the KeePass file remains decrypted as long as the socket is open.
 The UNIX socket file is stored in a temporary folder according to OS.
-
 
 ## Installation
 
@@ -47,5 +46,17 @@ Use `ansible-vault encrypt_string` to encrypt it and use it like below
     ansible_become_pass      : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'password') }}"
     custom_field             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
     attachment               : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'attachments', 'a_file_name') }}"
+    
+    - name: "Export file: attachment.txt"
+        viczem.keepass.attachment:
+          database: "{{ keepass_dbx }}"
+          password: "{{ keepass_psw }}"
+          entrypath: example/attachments
+          attachment: "attachment.txt"
+          dest: "{{ keepass_attachment_1_name }}"
 
-More examples see in [/doc/examples](/doc/examples).
+More examples see in [/docs/examples](/docs/examples).
+
+## Contributing
+
+See docs/contributing.
