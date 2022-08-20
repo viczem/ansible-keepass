@@ -11,7 +11,8 @@
     slash_url: "{{ lookup('viczem.keepass.keepass', 'slash\\/group/slash\\/title', 'url') }}"
     pork_custom_property: "{{ lookup('viczem.keepass.keepass', 'example/pork', 'custom_properties', 'pork_custom_property')}}"
     attachment: "{{ lookup('viczem.keepass.keepass', 'example/pork', 'attachments', 'test.txt')}}"
-
+    keepass_attachment_1_name: "attachment_1.txt"
+    keepass_attachment_2_name: "attachment_2.zip"
 
   tasks:
     - debug:
@@ -34,3 +35,20 @@
         msg: "fetch entry: '/slash\\/group/slash\\/title'; username: '{{ slash_login }}'; url: '{{ slash_url }}'"
 
     - debug: "{{ lookup('viczem.keepass.keepass', 'close') }}"
+
+    - name: "Export file: {{ keepass_attachment_1_name }}"
+      viczem.keepass.attachment:
+        database: "{{ keepass_dbx }}"
+        password: "{{ keepass_psw }}"
+        entrypath: example/attachments
+        attachment: "{{ keepass_attachment_1_name }}"
+        dest: "{{ keepass_attachment_1_name }}"
+
+    - name: "Export file: {{ keepass_attachment_2_name }}"
+      viczem.keepass.attachment:
+        database: "{{ keepass_dbx }}"
+        password: "{{ keepass_psw }}"
+        entrypath: example/attachments
+        attachment: "{{ keepass_attachment_2_name }}"
+        dest: "{{ keepass_attachment_2_name }}"
+        mode: 0600
