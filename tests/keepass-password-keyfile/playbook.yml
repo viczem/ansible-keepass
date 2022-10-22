@@ -1,0 +1,11 @@
+---
+- name: test-keepass-keyfile-only
+  hosts: test
+  connection: local
+  vars:
+    test_username: "{{ lookup('viczem.keepass.keepass', 'test', 'username') }}"
+    test_password: "{{ lookup('viczem.keepass.keepass', 'test', 'password') }}"
+
+  tasks:
+    - debug:
+        msg: "fetch entry: '/test'; username: '{{ test_username }}'; password: '{{ test_password }}'"

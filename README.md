@@ -20,8 +20,8 @@ Requirements: `python 3`, `pykeepass==4.0.3`
 ## Variables
 
 - `keepass_dbx` - path to KeePass file
-- `keepass_psw` - password
-- `keepass_key` - *Optional*. Path to keyfile
+- `keepass_psw` - *Optional*. Password (required if `keepass_key` is not set)
+- `keepass_key` - *Optional*. Path to keyfile (required if `keepass_psw` is not set)
 - `keepass_ttl` - *Optional*. Socket TTL (will be closed automatically when not used). 
 Default 60 seconds.
 

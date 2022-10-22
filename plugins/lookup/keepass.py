@@ -21,7 +21,7 @@ from pykeepass.exceptions import CredentialsError
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <viczem.dev@gmail.com>
-    version_added: '0.6.0'
+    version_added: '0.7.1'
     short_description: Fetching data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry
@@ -76,10 +76,11 @@ class LookupModule(LookupBase):
             if not os.path.isfile(var_key):
                 raise AnsibleError("KeePass: '%s' is not found" % var_key)
 
-        # Check password (required)
+        # Check password (optional)
         var_psw = self._var(variables_.get("keepass_psw", ""))
-        if not var_psw:
-            raise AnsibleError("KeePass: 'keepass_psw' is not set")
+
+        if not var_key and not var_psw:
+            raise AnsibleError("KeePass: 'keepass_psw' and/or 'keepass_key' is not set")
 
         # TTL of keepass socket (optional, default: 60 seconds)
         var_ttl = self._var(str(variables_.get("keepass_ttl", "60")))
@@ -121,7 +122,6 @@ class LookupModule(LookupBase):
                         if resp[1] == "0":
                             success = True
                         else:
-                            sock.send(_rq("close"))
                             raise AnsibleError("KeePass: wrong dbx password")
                     sock.close()
                     break
@@ -229,11 +229,12 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
 
                         # CMD: password
                         if kp is None:
-                            if arg_len == 0:
-                                conn.send(_resp("password", 1))
-                                break
-                            if cmd == "password" and arg[0]:
+                            if cmd == "password" and arg_len > 0:
                                 kp = PyKeePass(kdbx, arg[0], kdbx_key)
+                                conn.send(_resp("password", 0))
+                                break
+                            elif cmd == "password" and kdbx_key:
+                                kp = PyKeePass(kdbx, None, kdbx_key)
                                 conn.send(_resp("password", 0))
                                 break
                             else:
