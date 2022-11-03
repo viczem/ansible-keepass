@@ -1,0 +1,65 @@
+version: "3"
+services:
+  ansible-keepass-test-1:
+    build:
+        context: .
+        args:
+            USERNAME: user1
+            PASSWORD: password1
+    image: "ansible-keepass-test-1:latest"
+    networks:
+      ansible-net:
+        ipv4_address: 172.24.2.1
+
+  ansible-keepass-test-2:
+    build:
+        context: .
+        args:
+            USERNAME: user2
+            PASSWORD: password2
+    image: "ansible-keepass-test-2:latest"
+    networks:
+      ansible-net:
+        ipv4_address: 172.24.2.2
+
+
+  ansible-keepass-test-3:
+    build:
+        context: .
+        args:
+            USERNAME: user3
+            PASSWORD: password3
+    image: "ansible-keepass-test-3:latest"
+    networks:
+      ansible-net:
+        ipv4_address: 172.24.2.3
+
+  ansible-keepass-test-4:
+    build:
+        context: .
+        args:
+            USERNAME: user4
+            PASSWORD: password4
+    image: "ansible-keepass-test-4:latest"
+    networks:
+      ansible-net:
+        ipv4_address: 172.24.2.4
+
+  ansible-keepass-test-5:
+    build:
+        context: .
+        args:
+            USERNAME: user5
+            PASSWORD: password5
+    image: "ansible-keepass-test-5:latest"
+    networks:
+      ansible-net:
+         ipv4_address: 172.24.2.5
+
+networks:
+  ansible-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.24.2.0/16"
