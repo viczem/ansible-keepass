@@ -1,2 +1,2 @@
-ansible_user            : "{{ lookup('keepass', 'srv-1', 'username') }}"
-ansible_become_pass     : "{{ lookup('keepass', 'srv-1', 'password') }}"
+ansible_user            : "{{ lookup('viczem.keepass.keepass', 'srv-1', 'username') }}"
+ansible_become_pass     : "{{ lookup('viczem.keepass.keepass', 'srv-1', 'password') }}"
