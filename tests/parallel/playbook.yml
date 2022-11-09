@@ -1,0 +1,12 @@
+---
+- name: Parallel
+  hosts: all
+
+  tasks:
+    - ansible.builtin.ping:
+
+    - name: pause to emulate long time operation (greater than keepass_ttl)
+      pause:
+        seconds: 5
+
+    - ansible.builtin.ping:
