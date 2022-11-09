@@ -3,6 +3,7 @@ __metaclass__ = type
 import argparse
 import getpass
 import hashlib
+import fcntl
 import os
 import re
 import socket
@@ -21,7 +22,7 @@ from pykeepass.exceptions import CredentialsError
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <viczem.dev@gmail.com>
-    version_added: '0.7.1'
+    version_added: '0.7.2'
     short_description: Fetching data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry
@@ -88,7 +89,9 @@ class LookupModule(LookupBase):
         socket_path = _keepass_socket_path(var_dbx)
         lock_file_ = socket_path + ".lock"
 
-        if not os.path.isfile(lock_file_):
+        try:
+            os.open(lock_file_, os.O_RDWR)
+        except FileNotFoundError:
             cmd = [
                 "/usr/bin/env",
                 "python3",
@@ -189,7 +192,6 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
     """
     tmp_files = []
     try:
-        os.umask(0o177)
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
             s.bind(sock_path)
             s.listen(1)
@@ -240,6 +242,9 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                             else:
                                 conn.send(_resp("password", 1))
                                 break
+                        elif cmd == "password":
+                            conn.send(_resp("password", 0))
+                            break
 
                         # CMD: fetch
                         # Read data from decrypted KeePass file
@@ -404,6 +409,20 @@ def _keepass_socket_path(dbx_path):
     return "%s/ansible-keepass-%s.sock" % (tempdir, suffix[:8])
 
 
+def lock(kdbx_sock_path):
+    fd = os.open(kdbx_sock_path + ".lock", os.O_RDWR | os.O_CREAT | os.O_TRUNC)
+
+    try:
+        # The LOCK_EX means that only one process can hold the lock
+        # The LOCK_NB means that the fcntl.flock() is not blocking
+        # https://docs.python.org/3/library/fcntl.html#fcntl.flock
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (IOError, OSError):
+        return None
+
+    return fd
+
+
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("kdbx", type=str)
@@ -413,16 +432,16 @@ if __name__ == "__main__":
     arg_parser.add_argument("--ask-pass", action="store_true")
     args = arg_parser.parse_args()
 
-    kdbx = os.path.realpath(os.path.expanduser(os.path.expandvars(args.kdbx)))
+    arg_kdbx = os.path.realpath(os.path.expanduser(os.path.expandvars(args.kdbx)))
     if args.key:
-        key = os.path.realpath(os.path.expanduser(os.path.expandvars(args.key)))
+        arg_key = os.path.realpath(os.path.expanduser(os.path.expandvars(args.key)))
     else:
-        key = None
+        arg_key = None
 
     if args.kdbx_sock:
-        kdbx_sock = args.kdbx_sock
+        arg_kdbx_sock = args.kdbx_sock
     else:
-        kdbx_sock = _keepass_socket_path(kdbx)
+        arg_kdbx_sock = _keepass_socket_path(arg_kdbx)
 
     password = None
     if args.ask_pass:
@@ -430,7 +449,6 @@ if __name__ == "__main__":
         if isinstance(password, bytes):
             password = password.decode(sys.stdin.encoding)
 
-    lock_file = kdbx_sock + ".lock"
-    if not os.path.isfile(lock_file):
-        open(lock_file, "a").close()
-        _keepass_socket(kdbx, key, kdbx_sock, args.ttl, password)
+    os.umask(0o177)
+    if lock(arg_kdbx_sock):
+        _keepass_socket(arg_kdbx, arg_key, arg_kdbx_sock, args.ttl, password)
