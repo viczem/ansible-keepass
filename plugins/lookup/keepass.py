@@ -22,7 +22,7 @@ from pykeepass.exceptions import CredentialsError
 DOCUMENTATION = """
     lookup: keepass
     author: Victor Zemtsov <viczem.dev@gmail.com>
-    version_added: '0.7.2'
+    version_added: '0.7.3'
     short_description: Fetching data from KeePass file
     description:
         - This lookup returns a value of a property of a KeePass entry
