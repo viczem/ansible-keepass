@@ -72,6 +72,9 @@ class LookupModule(LookupBase):
 
         # Check key file (optional)
         var_key = self._var(variables_.get("keepass_key", ""))
+        if not var_key and "ANSIBLE_KEEPASS_KEY_FILE" in os.environ:
+            var_key = os.environ.get('ANSIBLE_KEEPASS_KEY_FILE')
+
         if var_key:
             var_key = os.path.realpath(os.path.expanduser(os.path.expandvars(var_key)))
             if not os.path.isfile(var_key):
@@ -80,11 +83,17 @@ class LookupModule(LookupBase):
         # Check password (optional)
         var_psw = self._var(variables_.get("keepass_psw", ""))
 
+        if not var_psw and "ANSIBLE_KEEPASS_PSW" in os.environ:
+            var_psw = os.environ.get('ANSIBLE_KEEPASS_PSW')
+
         if not var_key and not var_psw:
             raise AnsibleError("KeePass: 'keepass_psw' and/or 'keepass_key' is not set")
 
         # TTL of keepass socket (optional, default: 60 seconds)
-        var_ttl = self._var(str(variables_.get("keepass_ttl", "60")))
+        default_ttl="60"
+        if "ANSIBLE_KEEPASS_TTL" in os.environ:
+            default_ttl=os.environ.get("ANSIBLE_KEEPASS_TTL")
+        var_ttl = self._var(str(variables_.get("keepass_ttl", default_ttl)))
 
         socket_path = _keepass_socket_path(var_dbx)
         lock_file_ = socket_path + ".lock"
@@ -400,6 +409,9 @@ def _resp(cmd, status_code, payload=""):
 
 def _keepass_socket_path(dbx_path):
     # UNIX socket path for a dbx (supported multiple dbx)
+    if "ANSIBLE_KEEPASS_SOCKET" in os.environ:
+        return os.environ.get('ANSIBLE_KEEPASS_SOCKET')
+    # else:
     tempdir = tempfile.gettempdir()
     if not os.access(tempdir, os.W_OK):
         raise AnsibleError("KeePass: no write permissions to '%s'" % tempdir)
@@ -447,7 +459,13 @@ if __name__ == "__main__":
         password = getpass.getpass("Password: ")
         if isinstance(password, bytes):
             password = password.decode(sys.stdin.encoding)
+    elif "ANSIBLE_KEEPASS_PSW" in os.environ:
+        password = os.environ.get('ANSIBLE_KEEPASS_PSW')
+
+    arg_ttl = args.ttl
+    if arg_ttl is None and "ANSIBLE_KEEPASS_TTL" in os.environ:
+        arg_ttl = os.environ.get('ANSIBLE_KEEPASS_TTL')
 
     os.umask(0o177)
     if lock(arg_kdbx_sock):
-        _keepass_socket(arg_kdbx, arg_key, arg_kdbx_sock, args.ttl, password)
+        _keepass_socket(arg_kdbx, arg_key, arg_kdbx_sock, arg_ttl, password)
