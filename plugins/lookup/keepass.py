@@ -93,8 +93,7 @@ class LookupModule(LookupBase):
             os.open(lock_file_, os.O_RDWR)
         except FileNotFoundError:
             cmd = [
-                "/usr/bin/env",
-                "python3",
+                sys.executable,
                 os.path.abspath(__file__),
                 var_dbx,
                 socket_path,
