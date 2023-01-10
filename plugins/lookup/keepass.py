@@ -90,9 +90,9 @@ class LookupModule(LookupBase):
             raise AnsibleError("KeePass: 'keepass_psw' and/or 'keepass_key' is not set")
 
         # TTL of keepass socket (optional, default: 60 seconds)
-        default_ttl="60"
+        default_ttl = "60"
         if "ANSIBLE_KEEPASS_TTL" in os.environ:
-            default_ttl=os.environ.get("ANSIBLE_KEEPASS_TTL")
+            default_ttl = os.environ.get("ANSIBLE_KEEPASS_TTL")
         var_ttl = self._var(str(variables_.get("keepass_ttl", default_ttl)))
 
         socket_path = _keepass_socket_path(var_dbx)
