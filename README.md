@@ -27,17 +27,17 @@ Default 60 seconds.
 
 ## Environment Variables
 
-If you want to use ansible-keepass with continuous integration, it could be helpfull not to use ansible variables but Shell enviroment variables.
+If you want to use ansible-keepass with continuous integration, it could be helpful not to use ansible variables but Shell environment variables.
 
 - `ANSIBLE_KEEPASS_PSW` Password
 - `ANSIBLE_KEEPASS_KEY` Path to keyfile
 - `ANSIBLE_KEEPASS_TTL` Socket TTL
 - `ANSIBLE_KEEPASS_SOCKET` Path to Keepass Socket
 
-The environment variables will only used, if no ansible variable is set.
+The environment variables will only be used, if no ansible variable is set.
 
-You can than start the socket in an other background process like this
-```
+You can than start the socket in another background process like this
+```sh
 export ANSIBLE_KEEPASS_PSW=mySecret
 export ANSIBLE_KEEPASS_SOCKET=/home/build/.my-ansible-sock.${CI_JOB_ID}
 export ANSIBLE_TTL=600 # 10 Minutes
