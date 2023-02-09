@@ -110,7 +110,7 @@ def check_file_attrs(module, result, diff):
 def export_attachment(module, result):
     try:
         # load database
-        kp = PyKeePass(module.params["database"], password=module.params["password"])
+        kp = PyKeePass(module.params["database"], password=module.params["password"], keyfile=module.params["keyfile"])
 
         entrypath = module.params["entrypath"]
         dest = module.params["dest"]
@@ -170,6 +170,7 @@ def main():
     module_args = dict(
         database=dict(type="str", required=True),
         password=dict(type="str", no_log=True, required=True),
+        keyfile=dict(type="str", no_log=True, required=False),
         entrypath=dict(type="str", required=True),
         attachment=dict(type="str", required=True),
         dest=dict(type="path", required=True),
