@@ -164,7 +164,14 @@ class LookupModule(LookupBase):
             display.vvv("KeePass: %s %s" % (cmd, terms))
             sock.send(_rq(cmd, *terms))
 
-            resp = sock.recv(1024).decode().splitlines()
+            data = b''
+            while True:
+                _ = sock.recv(1024)
+                data += _
+                if len(_) < 1024:
+                    break
+
+            resp = data.decode().splitlines()
             resp_len = len(resp)
             if resp_len == 0:
                 raise AnsibleError("KeePass: '%s' result is empty" % cmd)
