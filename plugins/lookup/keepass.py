@@ -147,6 +147,7 @@ class LookupModule(LookupBase):
 
         if len(terms) == 1 and terms[0] in ("quit", "exit", "close"):
             self._send(socket_path, terms[0], [])
+            return []
         else:
             # Fetching data from the keepass socket
             return self._send(socket_path, "fetch", terms)
