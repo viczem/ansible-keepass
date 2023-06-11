@@ -369,7 +369,7 @@ def _keepass_socket(kdbx, kdbx_key, sock_path, ttl=60, kdbx_password=None):
                                 )
                             )
                             break
-                        conn.send(_resp("fetch", 0, getattr(entry, prop)))
+                        conn.send(_resp("fetch", 0, entry.deref(prop)))
     except CredentialsError:
         print("%s failed to decrypt" % kdbx)
         sys.exit(1)
