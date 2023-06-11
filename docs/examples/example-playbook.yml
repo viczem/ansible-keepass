@@ -34,7 +34,8 @@
     - debug:
         msg: "fetch entry: '/slash\\/group/slash\\/title'; username: '{{ slash_login }}'; url: '{{ slash_url }}'"
 
-    - debug: "{{ lookup('viczem.keepass.keepass', 'close') }}"
+    - debug:
+        msg: "close {{ lookup('viczem.keepass.keepass', 'close') }}"
 
     - name: "Export file: {{ keepass_attachment_1_name }}"
       viczem.keepass.attachment:
