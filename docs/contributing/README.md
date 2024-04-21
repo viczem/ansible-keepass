@@ -4,7 +4,7 @@
 
 ```
 [defaults]
-COLLECTIONS_PATHS = ./collections
+COLLECTIONS_PATH = ./collections
 ```
 
 2. Create requirements.yml in cloned directory:
@@ -26,4 +26,4 @@ rm -rf ./collections && ansible-galaxy install -r requirements.yml
 Note: Any change on your clone imply to reinstall the collection.
 
 
-Tip: You can place a ansible.cfg with `COLLECTIONS_PATHS = ../../collections` in the examples dictory if you want to run the example on local collection in your cloned directory.
+Tip: You can place a ansible.cfg with `COLLECTIONS_PATH = ../../collections` in the examples dictory if you want to run the example on local collection in your cloned directory.
