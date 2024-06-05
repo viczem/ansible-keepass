@@ -13,9 +13,10 @@ The UNIX socket file is stored in a temporary folder according to OS.
 
 Requirements: `python 3`, `pykeepass==4.0.3`
 
-    pip install 'pykeepass==4.0.3' --user
-    ansible-galaxy collection install viczem.keepass
-
+```sh
+pip install 'pykeepass==4.0.3' --user
+ansible-galaxy collection install viczem.keepass
+```
 
 ## Variables
 
@@ -37,6 +38,7 @@ If you want to use ansible-keepass with continuous integration, it could be help
 The environment variables will only be used, if no ansible variable is set.
 
 You can than start the socket in another background process like this
+
 ```sh
 export ANSIBLE_KEEPASS_PSW=mySecret
 export ANSIBLE_KEEPASS_SOCKET=/home/build/.my-ansible-sock.${CI_JOB_ID}
@@ -44,7 +46,6 @@ export ANSIBLE_TTL=600 # 10 Minutes
 /home/build/ansible-pyenv/bin/python3 /home/build/.ansible/roles/ansible_collections/viczem/keepass/plugins/lookup/keepass.py /path-to/my-keepass.kdbx &
 ansible-playbook -v playbook1.yml
 ansible-playbook -v playbook2.yml
-
 ```
 
 ## Usage
@@ -54,12 +55,14 @@ ansible-playbook -v playbook2.yml
 > **WARNING**: For security reasons, do not store KeePass passwords in plain text.
 Use `ansible-vault encrypt_string` to encrypt it and use it like below
 
-    # file: group_vars/all
+```yaml
+# file: group_vars/all
 
-    keepass_dbx: "~/.keepass/database.kdbx"
-    keepass_psw: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          ...encrypted password...
+keepass_dbx: "~/.keepass/database.kdbx"
+keepass_psw: !vault |
+        $ANSIBLE_VAULT;1.1;AES256
+        ...encrypted password...
+```
 
 ### Examples
 
@@ -67,19 +70,24 @@ More examples see in [/docs/examples](/docs/examples).
 
 #### Lookup
 
-    ansible_user             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'username') }}"
-    ansible_become_pass      : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'password') }}"
-    custom_field             : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
-    attachment               : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'attachments', 'a_file_name') }}"
+```yaml
+ansible_user        : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'username') }}"
+ansible_become_pass : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'password') }}"
+custom_field        : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'custom_properties', 'a_custom_property_name') }}"
+attachment          : "{{ lookup('viczem.keepass.keepass', 'path/to/entry', 'attachments', 'a_file_name') }}"
+```
 
 #### Module
-    - name: "Export file: attachment.txt"
-        viczem.keepass.attachment:
-          database: "{{ keepass_dbx }}"
-          password: "{{ keepass_psw }}"
-          entrypath: example/attachments
-          attachment: "attachment.txt"
-          dest: "{{ keepass_attachment_1_name }}"
+
+```yaml
+- name: "Export file: attachment.txt"
+  viczem.keepass.attachment:
+    database: "{{ keepass_dbx }}"
+    password: "{{ keepass_psw }}"
+    entrypath: example/attachments
+    attachment: "attachment.txt"
+    dest: "{{ keepass_attachment_1_name }}"
+```
 
 ## Contributing
 
