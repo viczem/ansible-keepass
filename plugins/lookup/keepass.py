@@ -98,9 +98,25 @@ class LookupModule(LookupBase):
         socket_path = _keepass_socket_path(var_dbx)
         lock_file_ = socket_path + ".lock"
 
+        # Create socket if needed
+        create_new_socket = False
         try:
             os.open(lock_file_, os.O_RDWR)
         except FileNotFoundError:
+            display.vvvv("Socket lock file doesn't exist, will create socket")
+            create_new_socket = True
+
+        if not create_new_socket:
+            try:
+                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                sock.connect(socket_path)
+                sock.close()
+            except ConnectionRefusedError:
+                display.vvvv("Socket connection refused, recreating")
+                create_new_socket = True
+                os.remove(socket_path)
+
+        if create_new_socket:
             cmd = [
                 sys.executable,
                 os.path.abspath(__file__),
