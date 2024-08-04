@@ -11,9 +11,9 @@ The UNIX socket file is stored in a temporary folder according to OS.
 
 ## Installation
 
-Requirements: `python 3`, `pykeepass==4.0.3`
+Requirements: `python 3`, `pykeepass>=4.0.4`
 
-    pip install 'pykeepass==4.0.3' --user
+    pip install 'pykeepass>=4.0.4' --user
     ansible-galaxy collection install viczem.keepass
 
 
